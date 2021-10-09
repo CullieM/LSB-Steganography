@@ -2,6 +2,7 @@
 //
 
 #include <iostream>
+#include "cbmp.h"
 
 int main()
 {
