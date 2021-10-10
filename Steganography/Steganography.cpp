@@ -2,8 +2,9 @@
 //
 
 #include <iostream>
-#include "bitmap_image.hpp"
 #include <string>
+#include <bitset>
+#include "bitmap_image.hpp"
 
 // Function for decoding the cipher text from a given image.
 std::string decode_image(bitmap_image input)
@@ -15,7 +16,7 @@ std::string decode_image(bitmap_image input)
     {
         for (int x = 0; x < width; ++x)
         {
-
+            
         }
     }
 
@@ -32,7 +33,18 @@ bitmap_image encode_image(bitmap_image input, std::string cipher_text)
     {
         for (int x = 0; x < width; ++x)
         {
-
+            rgb_t colour;
+            colour = input.get_pixel(x, y);
+            
+            std::bitset<8> var(colour.blue);
+            for (int k = 0; k < 8; k++)
+            {
+                var[k] = 0;
+            }
+            unsigned long temp_ulong = var.to_ulong();
+            unsigned char new_blue = static_cast<unsigned char>(temp_ulong);
+            colour.blue = new_blue;
+            input.set_pixel(x, y, colour);
         }
     }
     return input;
@@ -131,7 +143,8 @@ int main()
         //cipher_text = shift ? shift_encode(plain_text) : substitute_encode(plain_text);
         cipher_text = (char*)"placeholder for above line";
         
-        encode_image(image, cipher_text);
+        image = encode_image(image, cipher_text);
+
         image.save_image(output_path);
         std::cout << "Image successfully encoded at output.bmp!\n";
     }
