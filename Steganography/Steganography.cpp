@@ -24,30 +24,71 @@ std::string decode_image(bitmap_image input)
 }
 
 //Function for hiding text into an image using least significant bit image steganography.
-bitmap_image encode_image(bitmap_image input, std::string cipher_text)
+bitmap_image encode_image(bitmap_image image, std::string plain_text)
 {
-    unsigned int width = input.width();
-    unsigned int height = input.height();
-
-    for (int y = 0; y < height; ++y)
+    unsigned int current = 0;
+    
+    unsigned int width = image.width();             // Width of the image
+    unsigned int height = image.height();           // Height of the image
+    unsigned int length = plain_text.length();      // Length of the plain text
+    unsigned int pixels_required = length * 8 / 6;
+    std::bitset<8> plain_text_bits[10000];           // Array for the plain text bits
+    
+    // Initialise plain text bits from the string param.
+    for (int i = 0; i < length; i++)
     {
-        for (int x = 0; x < width; ++x)
+        
+        unsigned char temp_char = plain_text[i];
+        std::bitset<8> temp_bits(temp_char);
+        plain_text_bits[i] = temp_bits;
+
+    }
+    std::cout << "Exited the init loop \n";
+    //Nested loop for every pixel in the image
+    for (int y = 0; y < std::max((int)(pixels_required / height), 1); ++y)
+    {
+        for (int x = 0; x < pixels_required % width; ++x)
         {
             rgb_t colour;
-            colour = input.get_pixel(x, y);
+            colour = image.get_pixel(x, y);
             
-            std::bitset<8> var(colour.blue);
-            for (int k = 0; k < 8; k++)
-            {
-                var[k] = 0;
-            }
-            unsigned long temp_ulong = var.to_ulong();
-            unsigned char new_blue = static_cast<unsigned char>(temp_ulong);
+            //Convert the unsigned char colour values to bitsets.
+            std::bitset<8> blue_bits(colour.blue);
+            std::bitset<8> red_bits(colour.red);
+            std::bitset<8> green_bits(colour.green);
+            
+            //Change the 7th and 8th bits of the colour value.  
+            std::cout << "Changing value " << current << " \n";
+            blue_bits[0] = plain_text_bits[current / 4][(current * 2) % 8];
+            blue_bits[1] = plain_text_bits[current / 4][(current * 2) % 8 + 1];
+            current++;
+            std::cout << "Changing value " << current << " \n";
+            red_bits[0] = plain_text_bits[current / 4][(current * 2) % 8];
+            red_bits[1] = plain_text_bits[current / 4][(current * 2) % 8 + 1];
+            current++;
+            std::cout << "Changing value " << current << " \n";
+            green_bits[0] = plain_text_bits[current / 4][(current * 2) % 8];
+            green_bits[1] = plain_text_bits[current / 4][(current * 2) % 8 + 1];
+            current++;
+
+            //Interim conversion to ulong
+            unsigned long blue_ulong = blue_bits.to_ulong();
+            unsigned long red_ulong = red_bits.to_ulong();
+            unsigned long green_ulong = green_bits.to_ulong();
+            
+            //Conversion to unsigned char
+            unsigned char new_blue = static_cast<unsigned char>(blue_ulong);
+            unsigned char new_red = static_cast<unsigned char>(red_ulong);
+            unsigned char new_green = static_cast<unsigned char>(green_ulong);
+
+            //Set the new pixel colour
             colour.blue = new_blue;
-            input.set_pixel(x, y, colour);
+            colour.red = new_red;
+            colour.green = new_green;
+            image.set_pixel(x, y, colour);
         }
     }
-    return input;
+    return image;
 }
 
 int main()
