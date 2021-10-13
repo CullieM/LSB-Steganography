@@ -7,20 +7,53 @@
 #include "bitmap_image.hpp"
 
 // Function for decoding the cipher text from a given image.
-std::string decode_image(bitmap_image input)
+std::string decode_image(bitmap_image* image)
 {
-    unsigned int width = input.width();
-    unsigned int height = input.height();
+    unsigned int width = image->width();
+    unsigned int height = image->height();
+    unsigned int current_bits = 0;
+    
+    std::string return_string;
+    std::bitset<8> plain_text_bits[10000];           // Array for the plain text bits
 
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < 1; ++y)
     {
         for (int x = 0; x < width; ++x)
         {
             
+            rgb_t colour;
+            colour = image->get_pixel(x, y);
+
+            //Convert the unsigned char colour values to bitsets.
+            std::bitset<8> blue_bits(colour.blue);
+            std::bitset<8> red_bits(colour.red);
+            std::bitset<8> green_bits(colour.green);
+
+            //Retrieve the seventh and eighth bits of the colour value.
+            plain_text_bits[current_bits / 4][(current_bits * 2) % 8] = blue_bits[0];
+            plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1] = blue_bits[1];
+            current_bits++;
+
+            plain_text_bits[current_bits / 4][(current_bits * 2) % 8] = red_bits[0];
+            plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1] = red_bits[1];
+            current_bits++;
+            
+            plain_text_bits[current_bits / 4][(current_bits * 2) % 8] = green_bits[0];
+            plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1] = green_bits[1];
+            current_bits++;
         }
     }
 
-    return "not yet implemeneted";
+    for (int i = 0; i < width; ++i)
+    {
+
+        unsigned long interim_long = plain_text_bits[i].to_ulong();
+        unsigned char temp_char = static_cast<unsigned char>(interim_long);
+
+        return_string += temp_char;
+    }
+
+    return return_string;
 }
 
 //Function for hiding text into an image using least significant bit image steganography.
@@ -52,6 +85,7 @@ void encode_image(bitmap_image* image, std::string plain_text)
         std::bitset<8> temp_bits(temp_char);
         plain_text_bits[i] = temp_bits;
 
+
     }
     
     //Nested loop for every pixel in the image
@@ -71,15 +105,14 @@ void encode_image(bitmap_image* image, std::string plain_text)
                 std::bitset<8> green_bits(colour.green);
 
                 //Change the 7th and 8th bits of the colour value.  
-                std::cout << "Changing value " << current_bits << " \n";
                 blue_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
                 blue_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
                 current_bits++;
-                std::cout << "Changing value " << current_bits << " \n";
+                
                 red_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
                 red_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
                 current_bits++;
-                std::cout << "Changing value " << current_bits << " \n";
+                
                 green_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
                 green_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
                 current_bits++;
@@ -204,9 +237,9 @@ int main()
     }
     else
     {
-        cipher_text = decode_image(*image);
+        cipher_text = decode_image(image);
         //plain_text = shift ? shift_decode(cipher_text) : substitute_decode(cipher_text);
-        plain_text = "placeholder for above line";
+        plain_text = cipher_text; //"placeholder for above line";
 
         std::cout << "The secret message hidden in the image was: \n\"" << plain_text << "\"\n";
     } 
