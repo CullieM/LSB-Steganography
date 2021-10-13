@@ -20,7 +20,7 @@ std::string decode_image(bitmap_image* image)
     {
         for (int x = 0; x < width; ++x)
         {
-            
+            //Create a temporary colour.
             rgb_t colour;
             colour = image->get_pixel(x, y);
 
@@ -177,7 +177,10 @@ int main()
     
 
     //Prompt the user whether they want to use the shift or substitution cipher.
-    std::cout << "shift or substitute cipher?\n";
+    if (encrypt)
+        std::cout << "encrypt with shift or substitute cipher?\n";
+    else
+        std::cout << "decrypt with the shift or substitute cipher?\n";
     fgets(user_input, BUFFER_SIZE, stdin);
     
     //Shift cipher
@@ -234,6 +237,7 @@ int main()
 
         image->save_image(output_path);
         std::cout << "Image successfully encoded at output.bmp!\n";
+
     }
     else
     {
@@ -242,5 +246,9 @@ int main()
         plain_text = cipher_text; //"placeholder for above line";
 
         std::cout << "The secret message hidden in the image was: \n\"" << plain_text << "\"\n";
+        
     } 
+    std::cout << "Press any key to exit... \n";
+
+    std::getchar();
 }
