@@ -29,5 +29,11 @@
     <ClInclude Include="bitmap_image.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="shift.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="substitution.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

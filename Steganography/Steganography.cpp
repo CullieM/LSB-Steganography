@@ -1,12 +1,17 @@
-// Steganography.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+// Steganography.cpp 
+// author Cuchulainn McElduff
+// 
+// Least significant bit image steganography on bmp files.
 
 #include <iostream>
 #include <string>
 #include <bitset>
 #include "bitmap_image.hpp"
 
-// Function for decoding the cipher text from a given image.
+/* Function for decoding the cipher text from a given image.
+ * param image, The image to extract data from.
+ * returns string, The string extracted from the image.
+ */ 
 std::string decode_image(bitmap_image* image)
 {
     unsigned int width = image->width();
@@ -56,18 +61,23 @@ std::string decode_image(bitmap_image* image)
     return return_string;
 }
 
-//Function for hiding text into an image using least significant bit image steganography.
+/* Function for hiding text into an image.
+ * param image, The image to extract data from.
+ * returns string, The string extracted from the image.
+ */
 void encode_image(bitmap_image* image, std::string plain_text)
 {
-    unsigned int current_bits = 0;
-    unsigned int current_pixel = 0;
+    unsigned int current_bits = 0;                   // To keep track of the string bits to store.
+    unsigned int current_pixel = 0;                  // To track the pixel
 
     unsigned int width = image->width();             // Width of the image
     unsigned int height = image->height();           // Height of the image
-    unsigned int string_length = plain_text.length();      // Length of the plain text
+    unsigned int string_length = plain_text.length();// Length of the plain text
     
-    unsigned int max_string_length = (width * height * 6) / 8;
+    // Maximum length of string that can be stored if 6 bits can be stored in each pixel and there are 8 bits per string character.
+    unsigned int max_string_length = (width * height * 6) / 8; 
 
+    // If the string is too long to be stored in the image.
     if (string_length > max_string_length)  
     {
         std::cout << "String is too long!\n";
@@ -75,64 +85,65 @@ void encode_image(bitmap_image* image, std::string plain_text)
     }
     
     unsigned int pixels_required = (string_length * 8) / 6;  // Pixels required to store the entire string. 6 Bits can be stored in each pixel, and there are 8 bits per char.
-    std::bitset<8> plain_text_bits[10000];           // Array for the plain text bits
+    std::bitset<8> plain_text_bits[10000];                   // Array for the plain text bits
     
     // Initialise plain text bits from the string param.
     for (int i = 0; i < string_length; i++)
     {
-        
+        // Interim convert to uchar
         unsigned char temp_char = plain_text[i];
+        // Initialise bitset from uchar
         std::bitset<8> temp_bits(temp_char);
+        // Initialise array element from bitset
         plain_text_bits[i] = temp_bits;
-
 
     }
     
-    //Nested loop for every pixel in the image
+    //For every row in the image
     for (int y = 0; y < height; ++y)
     {
+        //For every column in the image
         for (int x = 0; x < width; ++x)
         {
             // If we do not need to store any more data.
             if ((current_pixel) > pixels_required) return;
-               
-                rgb_t colour;
-                colour = image->get_pixel(x, y);
-
-                //Convert the unsigned char colour values to bitsets.
-                std::bitset<8> blue_bits(colour.blue);
-                std::bitset<8> red_bits(colour.red);
-                std::bitset<8> green_bits(colour.green);
-
-                //Change the 7th and 8th bits of the colour value.  
-                blue_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
-                blue_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
-                current_bits++;
                 
-                red_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
-                red_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
-                current_bits++;
+            //Current pixel data.
+            rgb_t pixel;
+            pixel = image->get_pixel(x, y);
+
+            //Convert the unsigned char colour values to bitsets.
+            std::bitset<8> blue_bits(pixel.blue);
+            std::bitset<8> red_bits(pixel.red);
+            std::bitset<8> green_bits(pixel.green);
+
+            //Change the 7th and 8th bits of the colour value to the appropriate bits in the string. 
+            blue_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
+            blue_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
+            current_bits++;
                 
-                green_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
-                green_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
-                current_bits++;
+            red_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
+            red_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
+            current_bits++;
+                
+            green_bits[0] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8];
+            green_bits[1] = plain_text_bits[current_bits / 4][(current_bits * 2) % 8 + 1];
+            current_bits++;
 
-                //Interim conversion to ulong
-                unsigned long blue_ulong = blue_bits.to_ulong();
-                unsigned long red_ulong = red_bits.to_ulong();
-                unsigned long green_ulong = green_bits.to_ulong();
+            //Interim conversion to ulong, then uchar
+            unsigned long blue_ulong = blue_bits.to_ulong();
+            unsigned long red_ulong = red_bits.to_ulong();
+            unsigned long green_ulong = green_bits.to_ulong();
+            unsigned char new_blue = static_cast<unsigned char>(blue_ulong);
+            unsigned char new_red = static_cast<unsigned char>(red_ulong);
+            unsigned char new_green = static_cast<unsigned char>(green_ulong);
 
-                //Conversion to unsigned char
-                unsigned char new_blue = static_cast<unsigned char>(blue_ulong);
-                unsigned char new_red = static_cast<unsigned char>(red_ulong);
-                unsigned char new_green = static_cast<unsigned char>(green_ulong);
-
-                //Set the new pixel colour
-                colour.blue = new_blue;
-                colour.red = new_red;
-                colour.green = new_green;
-                image->set_pixel(x, y, colour);
-                current_pixel++;
+            //Set the new pixel colour
+            pixel.blue = new_blue;
+            pixel.red = new_red;
+            pixel.green = new_green;
+            image->set_pixel(x, y, pixel);
+            current_pixel++;
         }
     }
 }
@@ -146,11 +157,8 @@ int main()
     char sub_keyword[BUFFER_SIZE] = "";
     std::string plain_text;
     std::string cipher_text;
-
     const char* input_path = "input.bmp";
     const char* output_path = "output.bmp";
-    
-
     int shift_by;
     
     bitmap_image* image = new bitmap_image(input_path);
@@ -174,7 +182,6 @@ int main()
         encrypt = false;
         std::cout << "you have selected decryption. \n";
     }
-    
 
     //Prompt the user whether they want to use the shift or substitution cipher.
     if (encrypt)
@@ -223,32 +230,32 @@ int main()
             fgets(sub_keyword, BUFFER_SIZE, stdin);
             std::cout << "You are decoding with the sub cipher keyword: " << sub_keyword << "\n";
             
-            
         }
-        // cipher_text = 
     }
 
     if (encrypt)
     { 
         //cipher_text = shift ? shift_encode(plain_text) : substitute_encode(plain_text);
-        cipher_text = plain_text; //placeholder for above line;
+        
+        cipher_text = plain_text; // Placeholder for above line.
         
         encode_image(image, cipher_text);
 
         image->save_image(output_path);
         std::cout << "Image successfully encoded at output.bmp!\n";
-
     }
     else
     {
+        // Decode the string from the image.
         cipher_text = decode_image(image);
+        
         //plain_text = shift ? shift_decode(cipher_text) : substitute_decode(cipher_text);
-        plain_text = cipher_text; //"placeholder for above line";
+        
+        plain_text = cipher_text; //Placeholder for above line.
 
         std::cout << "The secret message hidden in the image was: \n\"" << plain_text << "\"\n";
-        
-    } 
-    std::cout << "Press any key to exit... \n";
+    }
 
+    std::cout << "Press any key to exit... \n";
     std::getchar();
 }
