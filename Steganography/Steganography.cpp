@@ -7,6 +7,8 @@
 #include <string>
 #include <bitset>
 #include "bitmap_image.hpp"
+#include "Substitute.h"
+#include "Shift.h"
 
 /* Function for decoding the cipher text from a given image.
  * param image, The image to extract data from.
@@ -161,6 +163,7 @@ int main()
     const char* output_path = "output.bmp";
     int shift_by;
     
+
     bitmap_image* image = new bitmap_image(input_path);
     std::cout << "Image read from input.bmp\n";
 
@@ -233,25 +236,24 @@ int main()
         }
     }
 
+    // If encrypting the image
     if (encrypt)
     { 
-        //cipher_text = shift ? shift_encode(plain_text) : substitute_encode(plain_text);
-        
-        cipher_text = plain_text; // Placeholder for above line.
+        //                    If shifting                          If substituting (placeholder)
+        cipher_text = shift ? shift_encode(plain_text, shift_by) : plain_text; // substitute_encode(plain_text);
         
         encode_image(image, cipher_text);
 
         image->save_image(output_path);
         std::cout << "Image successfully encoded at output.bmp!\n";
     }
+    // If decrypting the image
     else
     {
         // Decode the string from the image.
         cipher_text = decode_image(image);
-        
-        //plain_text = shift ? shift_decode(cipher_text) : substitute_decode(cipher_text);
-        
-        plain_text = cipher_text; //Placeholder for above line.
+        //                    If deshifting                          If desubstituting (placeholder)
+        plain_text = shift ? shift_decode(cipher_text, shift_by) : cipher_text; // substitute_decode(cipher_text);       
 
         std::cout << "The secret message hidden in the image was: \n\"" << plain_text << "\"\n";
     }
