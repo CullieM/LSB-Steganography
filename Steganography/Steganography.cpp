@@ -240,7 +240,7 @@ int main()
     if (encrypt)
     { 
         //                    If shifting                          If substituting (placeholder)
-        cipher_text = shift ? shift_encode(plain_text, shift_by) : plain_text; // substitute_encode(plain_text);
+        cipher_text = shift ? shift_encode(plain_text, shift_by) : substitute_encode(plain_text, sub_keyword);
         
         encode_image(image, cipher_text);
 
@@ -253,7 +253,7 @@ int main()
         // Decode the string from the image.
         cipher_text = decode_image(image);
         //                    If deshifting                          If desubstituting (placeholder)
-        plain_text = shift ? shift_decode(cipher_text, shift_by) : cipher_text; // substitute_decode(cipher_text);       
+        plain_text = shift ? shift_decode(cipher_text, shift_by) : substitute_decode(cipher_text, sub_keyword);       
 
         std::cout << "The secret message hidden in the image was: \n\"" << plain_text << "\"\n";
     }

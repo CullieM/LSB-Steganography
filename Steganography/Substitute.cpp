@@ -1,37 +1,69 @@
 #include <string>
+std::string cipherText(std::string cipheralpha) {
+    for (int i = 0; cipheralpha[i] != '\0'; i++)
+    {
+        if (cipheralpha[i] >= 'a' && cipheralpha[i] <= 'z')
+            cipheralpha[i] = cipheralpha[i] - 32;
+    }
 
-std::string substitute_encode(std::string plain_text, unsigned int key) {
-	for (int i = 0; i < plain_text.length(); i++) {
-		if (plain_text[i] == ' ')
-			continue;
-
-		char first_word = islower(plain_text[i]) ? 'a' : 'A';
-		unsigned int operation = plain_text[i] - first_word,
-			new_operation = operation + key;
-		plain_text[i] = first_word + new_operation % 26;
-	}
-	return plain_text;
+    std::string ciphertext = "";
+    ciphertext = ciphertext + cipheralpha;
+    bool ch[26] = { false };
+    for (int i = 0; cipheralpha[i] != '\0'; i++)
+    {
+        int diff = cipheralpha[i] - 65;
+        ch[diff] = true;
+    }
+    for (int i = 0; i < 26; i++)
+    {
+        if (ch[i] == false)
+        {
+            char c = char(i + 65);
+            ciphertext = ciphertext + c;
+        }
+    }
+    return ciphertext;
+}
+std::string substitute_encode(std::string plaintext, std::string sub_keyword) {
+    std::string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string ciphertext = cipherText(sub_keyword);
+    for (int i = 0; plaintext[i] != '\0'; i++)
+    {
+        if (plaintext[i] >= 'a' && plaintext[i] <= 'z')
+            plaintext[i] = plaintext[i] - 32;
+    }
+    std::string encryption;
+    for (char character : plaintext) {
+        size_t position = alphabet.find(character);
+        if (position != std::string::npos) {
+            char new_char{ ciphertext.at(position) };
+            encryption += new_char;
+        }
+        else {
+            encryption += character;
+        }
+    }
+    return encryption;
 }
 
-
-
-// for Decryption
-
-
-std::string substitute_decode(std::string cipher_text, unsigned int key) {
-	for (int i = 0; i < cipher_text.length(); i++) {
-		if (cipher_text[i] == ' ')
-			continue;
-
-		char first_word = islower(cipher_text[i]) ? 'a' : 'A';
-		unsigned int operation = cipher_text[i] - first_word;
-		int new_operation = operation - key;
-
-		if (new_operation < 0) {
-			new_operation += 26;
-		}
-
-		cipher_text[i] = first_word + (new_operation % 26);
-	}
-	return cipher_text;
+std::string substitute_decode(std::string ciphertext, std::string sub_keyword)
+{
+    std::string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string cipher_text = cipherText(sub_keyword);
+    for (int i = 0; ciphertext[i] != '\0'; i++)
+    {
+        if (ciphertext[i] >= 'a' && ciphertext[i] <= 'z')
+            ciphertext[i] = ciphertext[i] - 32;
+    }
+    std::string decryption;
+    for (char character : ciphertext) {
+        size_t position = cipher_text.find(character);
+        if (position != std::string::npos) {
+            char new_char{ alphabet.at(position) };
+            decryption += new_char;
+        }
+        else
+            decryption += character;
+    }
+    return decryption;
 }
